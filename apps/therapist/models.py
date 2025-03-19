@@ -27,5 +27,3 @@ class TherapistContact(models.Model):
     country_code = models.CharField(max_length=5)
     contact = models.CharField(max_length=20)
     
-    def __str__(self):
-        return self.country_code, self.contact
