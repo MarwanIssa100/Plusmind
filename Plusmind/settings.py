@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'therapist.apps.TherapistConfig',
+    'patients.apps.PatientsConfig',
+    'django_countries',
 ]
 
 MIDDLEWARE = [
