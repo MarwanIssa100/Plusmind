@@ -1,7 +1,9 @@
 from .managers import CustomTherapistManager
 from django.db import models
+from patients.models import Patient
 from django.contrib.auth.models import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import MinValueValidator , MaxValueValidator
 
 
 class Therapist(AbstractBaseUser):
@@ -17,13 +19,23 @@ class Therapist(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    objects = CustomTherapistManager()
+    # objects = CustomTherapistManager()
 
     def __str__(self):
         return self.name
+    def getAVGRating(self):
+        reviews = TherapistReviwe.objects.filter(therapist=self)
+        if reviews.exists():
+            return reviews.aggregate(models.Avg('rating'))['rating__avg']
     
 class TherapistContact(models.Model):
     therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE)
     country_code = models.CharField(max_length=5)
     contact = models.CharField(max_length=20)
+    
+class TherapistReviwe(models.Model):
+    therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    review = models.TextField()
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     

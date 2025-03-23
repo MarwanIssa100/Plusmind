@@ -7,7 +7,6 @@ from django_countries.fields import CountryField
 class Patient(AbstractBaseUser):
     name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20)
     address = models.TextField()
     Birth_date = models.DateTimeField(auto_now_add=False)
     gender = models.enums.Choices(("male", "female"))
@@ -24,4 +23,5 @@ class Patient(AbstractBaseUser):
 class PatientContact(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     country = CountryField(blank_label="(select country)")
+    counrty_code = models.CharField(max_length=5)
     contact = models.CharField(max_length=20)
