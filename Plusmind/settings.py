@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'therapist.apps.TherapistConfig',
     'patients.apps.PatientsConfig',
-    'sessions.apps.SessionsConfig',
+    'Sessions.apps.SessionsConfig',
+    'reviews.apps.ReviewsConfig',
     'django_countries',
 ]
 

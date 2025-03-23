@@ -5,10 +5,10 @@ from reviews.models import Reviews
 
 # Create your models here.
 
-class Session(models.Model):
-    sessionChoices = (("consultation", "Consultation"), ("treatment", "Treatment"), ("group", "Group"))
+class SessionDetails(models.Model):
+    SESSION_CHOICES = (("consultation", "Consultation"), ("treatment", "Treatment"), ("group", "Group"))
     id = models.AutoField(primary_key=True)
-    session_type = models.Choices(sessionChoices)
+    session_type = models.CharField(max_length=20, choices=SESSION_CHOICES)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     therapist_id = models.ForeignKey(Therapist, on_delete=models.CASCADE)
     start_time = models.DateTimeField()

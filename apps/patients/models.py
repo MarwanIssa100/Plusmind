@@ -5,11 +5,12 @@ from django_countries.fields import CountryField
 
 # Create your models here.
 class Patient(AbstractBaseUser):
+    GENDER = (("male", "male"), ("female", "female"))
     name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
     address = models.TextField()
     Birth_date = models.DateTimeField(auto_now_add=False)
-    gender = models.enums.Choices(("male", "female"))
+    gender = models.CharField(max_length=10, choices=GENDER)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     
