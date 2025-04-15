@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser 
 from django_countries.fields import CountryField
 
 
@@ -13,6 +13,7 @@ class Patient(AbstractBaseUser):
     gender = models.CharField(max_length=10, choices=GENDER)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    
     
     
     USERNAME_FIELD = 'email'
