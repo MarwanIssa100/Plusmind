@@ -13,7 +13,6 @@ class SessionDetails(models.Model):
     therapist_id = models.ForeignKey(Therapist, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     review = models.ForeignKey(Reviews, on_delete=models.CASCADE, null=True, blank=True)

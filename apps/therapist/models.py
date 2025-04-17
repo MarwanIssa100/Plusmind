@@ -1,20 +1,20 @@
 from django.db import models
 from patients.models import Patient
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser 
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator , MaxValueValidator
+from django.conf import settings
+from apps.Notes.models import Notes 
 
 
 class Therapist(AbstractBaseUser):
-    name = models.CharField(max_length=50)
-    email = models.EmailField(_('email address'),unique=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
     photo = models.ImageField(upload_to='therapist/photo/',null=True,blank=True)
     working_hours = models.TimeField()
     joining_date = models.DateTimeField(auto_now_add=True)
     certificates = models.ImageField(upload_to='therapist/certificates/',null=True,blank=True)
     experience = models.TextField(null=True,blank=True)
-    is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -36,4 +36,8 @@ class TherapistReview(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     review = models.TextField()
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    
+class TherapistConclusions(Notes):
+    therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE,related_name='therapist_conclusions')
+    Session = models.ForeignKey('Sessions.SessionDetails', on_delete=models.CASCADE,related_name='session_conclusions')
     
