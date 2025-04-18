@@ -47,9 +47,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'therapist.apps.TherapistConfig',
     'patients.apps.PatientsConfig',
-    # 'Sessions.apps.SessionsConfig',
+    'Sessions.apps.SessionsConfig',
     'reviews.apps.ReviewsConfig',
+    'Notes.apps.NotesConfig',
     'django_countries',
+    'mdeditor',
+    
 ]
 
 MIDDLEWARE = [
@@ -92,15 +95,15 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+AUTH_USER_MODEL = 'auth.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    # ]
 }
 
 # Password validation
