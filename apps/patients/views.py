@@ -17,10 +17,10 @@ class PatientViewset(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'login']:
-            return [AllowAny]
+            return [AllowAny()]
         elif self.action in ['retrieve', 'update', 'partial_update']:
-            return [IsAuthenticated]
-        return [IsAdminUser]
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

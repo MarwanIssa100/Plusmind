@@ -26,7 +26,7 @@ class TherapistSerializer(serializers.ModelSerializer):
     contact = TherapistContactSerializer(source='therapist_contact',read_only=True,many=True)
     class Meta:
         model = Therapist
-        fields = ['name','email','specialty','photo','working_hours','joining_date','certificates','experience','is_active','reviews','contact']
+        fields = ['specialty','photo','working_hours','joining_date','certificates','experience','reviews','contact']
 
 
 class TherapistRegisterSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class TherapistRegisterSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True , min_length=8 , max_length=128)
     class Meta:
         model = Therapist
-        fields = ['name', 'email', 'specialty', 'photo', 'working_hours', 'joining_date', 'password', 'confirm_password']
+        fields = ['specialty', 'photo', 'working_hours', 'joining_date', 'password', 'confirm_password']
         
     def validate(self, attrs):
         password = attrs.get('password')
