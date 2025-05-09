@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.authentication import authenticate
 from .models import Therapist, TherapistReview, TherapistContact
+from django.contrib.auth.models import User
 
 class TherapistReviewSerializer(serializers.ModelSerializer):
     therapist_name = serializers.CharField(source='therapist.name',read_only=True)
@@ -44,10 +45,14 @@ class TherapistRegisterSerializer(serializers.ModelSerializer):
         return attrs
         
     def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            password=password
+        )
         validated_data.pop('confirm_password')  
         password = validated_data.pop('password')
-        therapist = Therapist(**validated_data)
-        therapist.set_password(password)  
+        therapist = Therapist.objects.create(user=user, **validated_data)
         therapist.save()
         return therapist
     

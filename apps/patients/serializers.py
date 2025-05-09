@@ -2,37 +2,53 @@ from .models import Patient
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authentication import authenticate
+from django.contrib.auth.models import User
+from datetime import datetime
 
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True , min_length=8 , max_length=128)
-    confirm_password = serializers.CharField(write_only=True , min_length=8 , max_length=128)
+    password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    confirm_password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    email = serializers.EmailField()
+    name = serializers.CharField(max_length=255)
+
     class Meta:
         model = Patient
-        fields = ['address', 'Birth_date', 'gender', 'password', 'confirm_password']
+        fields = ['email', 'name', 'address', 'Birth_date', 'gender', 'password', 'confirm_password']
         
     def validate(self, attrs):
         password = attrs.get('password')
         confirm_password = attrs.get('confirm_password')
         if password != confirm_password:
-            raise serializers.ValidationError("password and confirm password does not match")
+            raise serializers.ValidationError("Password and confirm password do not match")
         return attrs
         
     def create(self, validated_data):
-        validated_data.pop('confirm_password')  
+        # Remove password fields from validated_data
         password = validated_data.pop('password')
-        patient = Patient(**validated_data)
-        patient.set_password(password)  
-        patient.save()
+        validated_data.pop('confirm_password')
+        Birth_date = validated_data.pop('Birth_date').strftime('%Y-%m-%d')
+        
+        # Create User instance
+        user = User.objects.create_user(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            password=password
+        )
+        
+        # Create Patient instance
+        patient = Patient.objects.create(
+            user=user,
+            Birth_date=Birth_date,
+            **validated_data
+        )
+        
         return patient
     
-class PatientLoginSerializer(serializers.ModelSerializer):
-    username = serializers.EmailField()
-    password = serializers.CharField(write_only=True , min_length=8 , max_length=128)
-    class Meta:
-        model = Patient
-        fields = ['username', 'password']
-        
+class PatientLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
@@ -61,6 +77,10 @@ class PatientLoginSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"non_field_errors": "Patient profile not found."}
                 )
+            
+            # Add patient to validated data
+            attrs['patient'] = patient
+            attrs['user'] = user
             
         else:
             raise serializers.ValidationError(

@@ -1,17 +1,17 @@
 from django.db import models
 from patients.models import Patient
-from django.contrib.auth.models import AbstractBaseUser 
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator , MaxValueValidator
 from django.conf import settings
 from apps.Notes.models import Notes 
+from datetime import datetime
 
 
-class Therapist(AbstractBaseUser):
+class Therapist(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
     photo = models.ImageField(upload_to='therapist/photo/',null=True,blank=True)
-    working_hours = models.TimeField()
+    working_hours = models.TimeField(default=datetime.now)
     joining_date = models.DateTimeField(auto_now_add=True)
     certificates = models.ImageField(upload_to='therapist/certificates/',null=True,blank=True)
     experience = models.TextField(null=True,blank=True)
@@ -39,5 +39,5 @@ class TherapistReview(models.Model):
     
 class TherapistConclusions(Notes):
     therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE,related_name='therapist_conclusions')
-    Session = models.ForeignKey('Sessions.SessionDetails', on_delete=models.CASCADE,related_name='session_conclusions')
+    session = models.ForeignKey('sessionDetails.SessionDetails', on_delete=models.CASCADE,related_name='session_conclusions',null=True,blank=True)
     

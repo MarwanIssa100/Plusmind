@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'therapist',
     'patients',
-    'Sessions',
+    'sessionDetails',
     'reviews',
     'Notes',
     'django_countries',
@@ -95,6 +95,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 AUTH_USER_MODEL = 'auth.User'
 
 REST_FRAMEWORK = {
@@ -143,7 +144,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / '/media'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

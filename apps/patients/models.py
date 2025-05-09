@@ -1,20 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser 
 from django_countries.fields import CountryField
 from django.conf import settings
 from apps.Notes.models import Notes
+from datetime import datetime
 
 
 # Create your models here.
-class Patient(AbstractBaseUser):
+class Patient(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
     GENDER = (("male", "male"), ("female", "female"))
     address = models.TextField()
-    Birth_date = models.DateTimeField(auto_now_add=False)
+    Birth_date = models.DateField(auto_now_add=False)
     gender = models.CharField(max_length=10, choices=GENDER)
-    
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
     
     def __str__(self):
         return self.name

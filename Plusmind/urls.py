@@ -28,4 +28,5 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('therapist/',include('therapist.urls',namespace='therapist')),
     path('patients/',include('patients.urls',namespace='patients')),
+    path('sessionDetails/',include('sessionDetails.urls',namespace='sessionDetails')),
 ]
