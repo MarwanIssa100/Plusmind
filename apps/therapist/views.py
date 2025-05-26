@@ -9,10 +9,11 @@ from .serializers import *
 from .permissions import IsTherapist
 from sessionDetails.serializers import SessionDetailsSerializer
 from sessionDetails.models import SessionDetails
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class TherapistViewset(viewsets.ModelViewSet):
     queryset = Therapist.objects.all()
-
+    serializer_class = TherapistRegisterSerializer
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
@@ -21,10 +22,26 @@ class TherapistViewset(viewsets.ModelViewSet):
         else:
             return [IsAuthenticated()]
         
+        
     def get_serializer_class(self):
         if self.request.user.is_staff or self.request.user.is_superuser:
             return TherapistAdminSerializer
-        return TherapistSerializer
+        return TherapistRegisterSerializer
+    
+    def login(self, request):
+        serializer = TherapistTokenObtainPairSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        therapist = Therapist.objects.get(user=serializer.validated_data['user'])
+        refresh = RefreshToken.for_user(therapist.user)
+        
+        return Response({
+            'therapist': TherapistRegisterSerializer(therapist).data,
+            'tokens': {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        })
 
 class TherapistContactViewset(viewsets.ModelViewSet):
     queryset = TherapistContact.objects.all()

@@ -11,4 +11,5 @@ router.register(r'reviews',TherapistReviewViewset,basename='review')
 
 urlpatterns = [
     path('',include(router.urls)),
+    path('login/therapist/', TherapistViewset.login, name='therapist-login'),
 ]

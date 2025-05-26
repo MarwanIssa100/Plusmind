@@ -26,7 +26,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('therapist/',include('therapist.urls',namespace='therapist')),
-    path('patients/',include('patients.urls',namespace='patients')),
-    path('sessionDetails/',include('sessionDetails.urls',namespace='sessionDetails')),
+    path('accounts/',include('accounts.urls',namespace='accounts')),
+    # path('therapist/',include('therapist.urls',namespace='therapist')),
+    # path('patients/',include('patients.urls',namespace='patients')),
+    # path('sessionDetails/',include('sessionDetails.urls',namespace='sessionDetails')),
 ]
