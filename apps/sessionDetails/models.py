@@ -1,7 +1,6 @@
 from django.db import models
-from therapist.models import Therapist
-from patients.models import Patient
-from reviews.models import Reviews
+from accounts.models import Therapist, Patient
+
 
 # Create your models here.
 
@@ -19,7 +18,7 @@ class SessionDetails(models.Model):
     duration = models.CharField(max_length=2, choices=duration_choices , default="30")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    review = models.ForeignKey(Reviews, on_delete=models.CASCADE, null=True, blank=True)
+    # review = models.ForeignKey(Reviews, on_delete=models.CASCADE, null=True, blank=True)
     
     
     

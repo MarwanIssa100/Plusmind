@@ -14,7 +14,7 @@ class SessionDetailsSerializer(serializers.ModelSerializer):
 
         session = SessionDetails.objects.create(
             session_type = validated_data['session_type'],
-            patient_id = validated_data.get('patient_id',self.context['request'].user.id),
+            patient_id = validated_data.get('patient_id'),
             therapist_id = validated_data.get('therapist_id'),
             start_time = validated_data['start_time'],
             end_time = end_time,

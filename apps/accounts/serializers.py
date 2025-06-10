@@ -6,6 +6,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
+
+
 class TherapistTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email' 
 
@@ -67,7 +69,7 @@ class PatientTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         # Add custom claims
-        token['role'] = 'therapist'
+        token['role'] = 'patient'
         return token
 
 
