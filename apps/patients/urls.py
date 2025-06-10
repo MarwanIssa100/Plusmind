@@ -11,5 +11,5 @@ router.register(r'patients',PatientViewset,basename='patient')
 
 urlpatterns = [
     path('',include(router.urls)),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('login/patient/', PatientViewset.login, name='patient-login'),
 ]

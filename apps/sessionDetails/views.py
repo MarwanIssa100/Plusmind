@@ -9,6 +9,8 @@ from rest_framework import serializers
 from rest_framework import status
 from django.db.models import Q
 from datetime import timedelta
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 # Create your views here.
 
@@ -23,9 +25,33 @@ def search(request):
 
 class SessionCreateViewset(APIView):
     permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Create a new therapy session",
+        request_body=SessionDetailsSerializer,
+        responses={
+            201: openapi.Response(
+                description="Session created successfully",
+                schema=SessionDetailsSerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'field_name': openapi.Schema(type=openapi.TYPE_STRING, description='Error message')
+                    }
+                )
+            ),
+            401: openapi.Response(
+                description="Authentication credentials were not provided"
+            )
+        }
+    )
     def post(self, request):
-        serializer = SessionDetailsSerializer(data=request.data)
-        # serializer.Meta.patient_id = request.user.id
+        data = request.data.copy()
+        data['patient_id'] = request.user.id
+        serializer = SessionDetailsSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -63,6 +89,41 @@ class RetrieveSessionView(APIView):
 
 
 class UpdateSessionTimeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Update the start time and end time of a therapy session",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['start_time'],
+            properties={
+                'start_time': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_DATETIME,
+                    description="New start time for the session (format: YYYY-MM-DD HH:MM:SS)"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Session time updated successfully",
+                schema=SessionDetailsSerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Error message"
+                        )
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Session not found"
+            )
+        }
+    )
     def patch(self, request, pk):
         session = get_object_or_404(SessionDetails, pk=pk)
         new_start_time = request.data.get('start_time')

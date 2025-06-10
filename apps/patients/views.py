@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
 class PatientViewset(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
+    serializer_class = PatientRegisterSerializer
     
     def get_serializer_class(self):
         if self.action == 'login':
@@ -22,29 +23,29 @@ class PatientViewset(viewsets.ModelViewSet):
             return [IsAuthenticated()]
         return [IsAdminUser()]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        patient = serializer.save()
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     patient = serializer.save()
         
-        # Generate tokens for immediate login after registration
-        user = patient.user
-        refresh = RefreshToken.for_user(user)
+    #     # Generate tokens for immediate login after registration
+    #     user = patient.user
+    #     refresh = RefreshToken.for_user(user)
         
-        response_data = {
-            'patient': PatientRegisterSerializer(patient).data,
-            'tokens': {
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            }
-        }
+    #     response_data = {
+    #         'patient': PatientRegisterSerializer(patient).data,
+    #         'tokens': {
+    #             'access': str(refresh.access_token),
+    #             'refresh': str(refresh),
+    #         }
+    #     }
         
-        headers = self.get_success_headers(serializer.data)
-        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+        # headers = self.get_success_headers(serializer.data)
+        # return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def login(self, request):
-        serializer = PatientLoginSerializer(data=request.data, context={'request': request})
+        serializer = PatientTokenObtainPairSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         
         patient = Patient.objects.get(user=serializer.validated_data['user'])
