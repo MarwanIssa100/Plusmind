@@ -16,6 +16,10 @@ router.register(r'password-reset', PasswordResetViewSet, basename='password-rese
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('login/therapist/', TherapistLoginView.as_view(), name='therapist-login'),
-    path('login/patient/', PatientLoginView.as_view(), name='patient-login'),
+    path('login/therapist/', TherapistLoginView.login, name='therapist-login'),
+    path('login/patient/', PatientLoginView.login, name='patient-login'),
+    path('logout/therapist/', TherapistRegisterViewSet.logout, name='therapist-logout'),
+    path('logout/patient/', PatientRegisterViewSet.logout, name='patient-logout'),
+    path('password-reset/', PasswordResetViewSet.request_reset, name='password-reset'),
+
 ]
