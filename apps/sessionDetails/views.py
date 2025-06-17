@@ -9,11 +9,69 @@ from rest_framework import serializers
 from rest_framework import status
 from django.db.models import Q
 from datetime import timedelta
+from rest_framework.decorators import api_view
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 # Create your views here.
 
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Search sessions by therapist name or specialty",
+    operation_description="""
+Searches session records by therapist's name or specialty.
+
+**Query Param:**
+- `search`: A keyword to search for in therapist's name or specialty (case-insensitive).
+
+Returns all sessions matching the search term.
+""",
+    manual_parameters=[
+        openapi.Parameter(
+            'search',
+            openapi.IN_QUERY,
+            description="Keyword to search for in therapist's name or specialty",
+            type=openapi.TYPE_STRING,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of matching session records",
+            examples={
+                "application/json": [
+                    {
+                        "id": 1,
+                        "therapist": "Dr. Sarah Johnson",
+                        "patient": "John Doe",
+                        "date": "2025-06-10",
+                        "time": "15:30",
+                        "status": "scheduled"
+                    },
+                    {
+                        "id": 2,
+                        "therapist": "Dr. Sarah Johnson",
+                        "patient": "Jane Roe",
+                        "date": "2025-06-15",
+                        "time": "11:00",
+                        "status": "completed"
+                    }
+                ]
+            }
+        ),
+        400: openapi.Response(
+            description="Missing search parameter",
+            examples={
+                "application/json": {
+                    "detail": "Missing search query"
+                }
+            }
+        )
+    },
+    tags=["Session"]
+)
+@api_view(['GET'])
 def search(request):
     if request.method == 'GET':
         search_query = request.GET.get('search')
@@ -28,6 +86,8 @@ class SessionCreateViewset(APIView):
     
     @swagger_auto_schema(
         operation_description="Create a new therapy session",
+        operation_summary="Create a new session",
+        tags=['Session'],
         request_body=SessionDetailsSerializer,
         responses={
             201: openapi.Response(
@@ -60,6 +120,25 @@ class SessionCreateViewset(APIView):
 
 class DeleteSessionView(APIView):
     permission_classes = [IsPatientOrTherapist]
+
+    @swagger_auto_schema(
+        operation_summary="Delete a session",
+        operation_description="Allows a patient or therapist to delete a specific session by its ID.",
+        manual_parameters=[
+            openapi.Parameter(
+                'pk',
+                openapi.IN_PATH,
+                description="ID of the session to delete",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        responses={
+            204: "Session deleted successfully",
+            404: "Session not found"
+        },
+        tags=["Session"]
+    )
     def delete(self, request, pk):
         try:
             session = SessionDetails.objects.get(pk=pk)
@@ -71,6 +150,46 @@ class DeleteSessionView(APIView):
 
 class GetAllSessionsView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve all sessions",
+        operation_description="Returns a list of all session records. Requires authentication.",
+        responses={
+            200: openapi.Response(
+                description="List of sessions",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_OBJECT, properties={
+                        "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+                        "therapist": openapi.Schema(type=openapi.TYPE_STRING),
+                        "patient": openapi.Schema(type=openapi.TYPE_STRING),
+                        "date": openapi.Schema(type=openapi.TYPE_STRING, format="date"),
+                        "time": openapi.Schema(type=openapi.TYPE_STRING),
+                        "status": openapi.Schema(type=openapi.TYPE_STRING),
+                    }),
+                    example=[
+                        {
+                            "id": 1,
+                            "therapist": "Dr. Sarah Johnson",
+                            "patient": "John Doe",
+                            "date": "2025-06-10",
+                            "time": "15:30",
+                            "status": "scheduled"
+                        },
+                        {
+                            "id": 2,
+                            "therapist": "Dr. Adam Smith",
+                            "patient": "Jane Doe",
+                            "date": "2025-06-12",
+                            "time": "10:00",
+                            "status": "completed"
+                        }
+                    ]
+                )
+            )
+        },
+        tags=["Session"]
+    )
     def get(self, request):
         sessions = SessionDetails.objects.all()
         serializer = SessionDetailsSerializer(sessions, many=True)
@@ -79,7 +198,45 @@ class GetAllSessionsView(APIView):
 
 class RetrieveSessionView(APIView):
     permission_classes = [IsPatientOrTherapist]
-    def retrieve(self, request, pk):
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve a session by ID",
+        operation_description="Returns details of a specific session by its ID. Accessible by the related patient or therapist.",
+        manual_parameters=[
+            openapi.Parameter(
+                'pk',
+                openapi.IN_PATH,
+                description="ID of the session to retrieve",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Session details",
+                examples={
+                    "application/json": {
+                        "id": 1,
+                        "therapist": "Dr. Sarah Johnson",
+                        "patient": "John Doe",
+                        "date": "2025-06-10",
+                        "time": "15:30",
+                        "status": "scheduled"
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Session not found",
+                examples={
+                    "application/json": {
+                        "message": "no session found"
+                    }
+                }
+            )
+        },
+        tags=["Session"]
+    )
+    def get(self, request, pk):
         try:
             session = SessionDetails.objects.get(pk=pk)
             serializer = SessionDetailsSerializer(session)
@@ -91,6 +248,8 @@ class RetrieveSessionView(APIView):
 class UpdateSessionTimeView(APIView):
     @swagger_auto_schema(
         operation_description="Update the start time and end time of a therapy session",
+        operation_summary="Update session time",
+        tags=['Session'],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['start_time'],
