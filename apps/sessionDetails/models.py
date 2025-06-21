@@ -18,6 +18,12 @@ class SessionDetails(models.Model):
     duration = models.CharField(max_length=2, choices=duration_choices , default="30")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # 100ms.live video conferencing fields
+    room_id = models.CharField(max_length=255, null=True, blank=True, help_text="100ms room ID")
+    room_code = models.CharField(max_length=255, null=True, blank=True, help_text="100ms room code")
+    room_url = models.URLField(null=True, blank=True, help_text="100ms room URL")
+    is_video_enabled = models.BooleanField(default=False, help_text="Whether video conferencing is enabled for this session")
     # review = models.ForeignKey(Reviews, on_delete=models.CASCADE, null=True, blank=True)
     
     

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import SessionDetails
 from datetime import timedelta
+
 class SessionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionDetails
@@ -19,6 +20,13 @@ class SessionDetailsSerializer(serializers.ModelSerializer):
             start_time = validated_data['start_time'],
             end_time = end_time,
             duration = validated_data['duration'],
+            is_video_enabled = validated_data.get('is_video_enabled', False),
         )
         return session
+
+class VideoRoomSerializer(serializers.ModelSerializer):
+    """Serializer for video room operations"""
+    class Meta:
+        model = SessionDetails
+        fields = ['id', 'room_id', 'room_code', 'room_url', 'is_video_enabled', 'session_type', 'start_time', 'end_time']
 
