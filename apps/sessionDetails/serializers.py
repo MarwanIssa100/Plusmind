@@ -5,7 +5,11 @@ from datetime import timedelta
 class SessionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionDetails
-        fields = '__all__'
+        fields = [
+            'id', 'session_type', 'status', 'start_time', 'end_time', 'duration',
+            'created_at', 'updated_at', 'room_id', 'room_code', 'room_url', 'is_video_enabled',
+            'patient_id', 'therapist_id'
+        ]
 
     def create(self, validated_data):
         if validated_data['duration'] == "30":
@@ -20,7 +24,7 @@ class SessionDetailsSerializer(serializers.ModelSerializer):
             start_time = validated_data['start_time'],
             end_time = end_time,
             duration = validated_data['duration'],
-            is_video_enabled = validated_data.get('is_video_enabled', False),
+            is_video_enabled = validated_data.get('is_video_enabled'),
         )
         return session
 

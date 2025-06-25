@@ -54,50 +54,43 @@ class SessionCreateViewset(APIView):
     )
     def post(self, request):
         data = request.data.copy()
-        data['patient_id'] = request.user.id
-        
-        # Check if video conferencing is enabled
-        is_video_enabled = data.get('is_video_enabled', False)
-        
+        is_video_enabled = data.get('is_video_enabled')
+        if isinstance(is_video_enabled, str):
+            is_video_enabled = is_video_enabled.lower() == "true"
+        data["is_video_enabled"] = is_video_enabled
+        data["patient_id"] = request.user.id
+
         serializer = SessionDetailsSerializer(data=data)
         if serializer.is_valid():
             session = serializer.save()
-            
-            # Create video room if enabled
             if is_video_enabled:
                 try:
                     hms_api = HMSAPI()
                     room_name = f"session_{session.id}_{session.session_type}"
-                    if session.duration == "30":
-                        max_duration_seconds = 30 * 60
-                    else:
-                        max_duration_seconds = 60 * 60
-                    
-                    if session.session_type == "group":
-                        max_participants = 20
-                    else:
-                        max_participants = 2
-
+                    max_duration_seconds = 30 * 60 if session.duration == "30" else 60 * 60
+                    max_participants = 20 if session.session_type == "group" else 2
                     room_data = hms_api.create_room(
                         room_name=room_name,
-                        description=f"Therapy session between {session.patient_id.name} and {session.therapist_id.name}",
+                        description=f"Therapy session",
                         max_participants=max_participants,
-                        max_duration_seconds=max_duration_seconds
+                        max_duration_seconds=max_duration_seconds,
                     )
-                    
-                    # Update session with room information
-                    session.room_id = room_data.get('id')
-                    session.room_code = room_data.get('room_code')
-                    session.room_url = hms_api.get_room_url(room_data.get('id'), room_data.get('room_code'))
+                    session.room_id = room_data.get("id")
+                    session.room_code = room_data.get("room_code")
+                    session.room_url = hms_api.get_room_url(room_data.get("id"), room_data.get("room_code"))
+                    session.is_video_enabled = True
                     session.save()
-                    
                 except Exception as e:
-                    logger.error(f"Failed to create video room for session {session.id}: {str(e)}")
-                    # Continue without video room if creation fails
-            
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                    logger.error(f"Failed to create video room: {str(e)}")
+                    session.is_video_enabled = False
+                    session.room_id = None
+                    session.room_code = None
+                    session.room_url = None
+                    session.save()
+            # Always re-serialize after updating
+            updated_serializer = SessionDetailsSerializer(session)
+            return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
 class DeleteSessionView(APIView):
     permission_classes = [IsPatientOrTherapist]

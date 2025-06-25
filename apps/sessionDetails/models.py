@@ -23,7 +23,7 @@ class SessionDetails(models.Model):
     room_id = models.CharField(max_length=255, null=True, blank=True, help_text="100ms room ID")
     room_code = models.CharField(max_length=255, null=True, blank=True, help_text="100ms room code")
     room_url = models.URLField(null=True, blank=True, help_text="100ms room URL")
-    is_video_enabled = models.BooleanField(default=False, help_text="Whether video conferencing is enabled for this session")
+    is_video_enabled = models.BooleanField(help_text="Whether video conferencing is enabled for this session")
     # review = models.ForeignKey(Reviews, on_delete=models.CASCADE, null=True, blank=True)
     
     
