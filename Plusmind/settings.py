@@ -27,6 +27,9 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
+HMS_APP_ID = os.getenv('HMS_APP_ID')
+HMS_APP_SECRET = os.getenv('HMS_APP_SECRET')
+HMS_TEMPLATE_ID = os.getenv('HMS_TEMPLATE_ID')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')

@@ -75,23 +75,38 @@ class SessionCreateViewset(APIView):
                         max_participants=max_participants,
                         max_duration_seconds=max_duration_seconds,
                     )
-                    session.room_id = room_data.get("id")
-                    session.room_code = room_data.get("room_code")
-                    session.room_url = hms_api.get_room_url(room_data.get("id"), room_data.get("room_code"))
+                    
+                    # Get room ID from response
+                    room_id = room_data.get("id")
+                    session.room_id = room_id
+                    
+                    # Create room code and get the host code
+                    room_code_data = hms_api.create_room_code(room_id)
+                    print(f"Room code response: {room_code_data}")
+                    
+                    # Extract the host room code from the array
+                    room_code = None
+                    if room_code_data and 'data' in room_code_data:
+                        for code_item in room_code_data['data']:
+                            if code_item.get('role') == 'host':
+                                room_code = code_item.get('code')
+                                break
+                        # If no host code found, use the first available code
+                        if not room_code and room_code_data['data']:
+                            room_code = room_code_data['data'][0].get('code')
+                    
+                    session.room_code = room_code
+                    session.room_url = hms_api.get_room_url(room_id, room_code) if room_id and room_code else None
                     session.is_video_enabled = True
                     session.save()
                 except Exception as e:
                     logger.error(f"Failed to create video room: {str(e)}")
-                    session.is_video_enabled = False
-                    session.room_id = None
-                    session.room_code = None
-                    session.room_url = None
                     session.save()
             # Always re-serialize after updating
             updated_serializer = SessionDetailsSerializer(session)
             return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class DeleteSessionView(APIView):
     permission_classes = [IsPatientOrTherapist]
     def delete(self, request, pk):
@@ -355,10 +370,26 @@ class EnableVideoView(APIView):
                     max_participants=2
                 )
                 
-                # Update session with room information
-                session.room_id = room_data.get('id')
-                session.room_code = room_data.get('room_code')
-                session.room_url = hms_api.get_room_url(room_data.get('id'), room_data.get('room_code'))
+                # Get room ID from response
+                room_id = room_data.get("id")
+                session.room_id = room_id
+                
+                # Create room code and get the host code
+                room_code_data = hms_api.create_room_code(room_id)
+                
+                # Extract the host room code from the array
+                room_code = None
+                if room_code_data and 'data' in room_code_data:
+                    for code_item in room_code_data['data']:
+                        if code_item.get('role') == 'host':
+                            room_code = code_item.get('code')
+                            break
+                    # If no host code found, use the first available code
+                    if not room_code and room_code_data['data']:
+                        room_code = room_code_data['data'][0].get('code')
+                
+                session.room_code = room_code
+                session.room_url = hms_api.get_room_url(room_id, room_code) if room_id and room_code else None
                 session.is_video_enabled = True
                 session.save()
                 
@@ -444,3 +475,4 @@ class RoomParticipantsView(APIView):
                 
         except SessionDetails.DoesNotExist:
             return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+
