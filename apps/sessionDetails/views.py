@@ -18,6 +18,40 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
+def reserve_room_immediately(session_id):
+    """
+    Reserve a room immediately without any delay.
+    This function runs synchronously to ensure immediate reservation.
+    """
+    try:
+        # Get the session
+        session = SessionDetails.objects.get(id=session_id)
+        
+        if session.is_video_enabled and session.room_id:
+            hms_api = HMSAPI()
+            
+            # Try to get room details to verify it's active
+            try:
+                room_details = hms_api.get_room(session.room_id)
+                logger.info(f"Room {session.room_id} is active and reserved for session {session_id}")
+                
+                # Update session status to reserved
+                session.status = "reserved"
+                session.save()
+                logger.info(f"Session {session_id} status updated to reserved")
+                
+            except Exception as e:
+                logger.error(f"Failed to reserve room {session.room_id} for session {session_id}: {str(e)}")
+                # If room reservation fails, keep status as pending
+                session.status = "pending"
+                session.save()
+                
+    except SessionDetails.DoesNotExist:
+        logger.error(f"Session {session_id} not found during room reservation")
+    except Exception as e:
+        logger.error(f"Unexpected error during room reservation for session {session_id}: {str(e)}")
+
+
 def search(request):
     if request.method == 'GET':
         search_query = request.GET.get('search')
@@ -104,8 +138,13 @@ class SessionCreateViewset(APIView):
                     session.save()
             # Always re-serialize after updating
             updated_serializer = SessionDetailsSerializer(session)
+            
+            # Reserve room immediately if video is enabled
+            if is_video_enabled and session.room_id:
+                reserve_room_immediately(session.id)
+                logger.info(f"Room reservation completed for session {session.id}")
+            
             return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class DeleteSessionView(APIView):
     permission_classes = [IsPatientOrTherapist]
@@ -476,3 +515,111 @@ class RoomParticipantsView(APIView):
         except SessionDetails.DoesNotExist:
             return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
+class RoomReservationStatusView(APIView):
+    """Check room reservation status for a session"""
+    permission_classes = [IsPatientOrTherapist]
+    
+    @swagger_auto_schema(
+        operation_description="Check if the room is reserved and active for a session",
+        responses={
+            200: openapi.Response(
+                description="Room reservation status retrieved successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'session_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'room_id': openapi.Schema(type=openapi.TYPE_STRING),
+                        'is_reserved': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'status': openapi.Schema(type=openapi.TYPE_STRING),
+                        'room_active': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'reservation_time': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME)
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Session not found"
+            )
+        }
+    )
+    def get(self, request, pk):
+        """Check room reservation status for a session"""
+        try:
+            session = SessionDetails.objects.get(pk=pk)
+            
+            if not session.is_video_enabled or not session.room_id:
+                return Response(
+                    {"error": "Video conferencing not enabled for this session"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if room is active in 100ms
+            room_active = False
+            try:
+                hms_api = HMSAPI()
+                room_details = hms_api.get_room(session.room_id)
+                room_active = True
+            except Exception as e:
+                logger.warning(f"Room {session.room_id} is not active: {str(e)}")
+            
+            return Response({
+                'session_id': session.id,
+                'room_id': session.room_id,
+                'is_reserved': session.status == "reserved",
+                'status': session.status,
+                'room_active': room_active,
+                'reservation_time': session.updated_at.isoformat() if session.status == "reserved" else None
+            }, status=status.HTTP_200_OK)
+                
+        except SessionDetails.DoesNotExist:
+            return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ManualRoomReservationView(APIView):
+    """Manually trigger room reservation for a session"""
+    permission_classes = [IsPatientOrTherapist]
+    
+    @swagger_auto_schema(
+        operation_description="Manually trigger room reservation for a session",
+        responses={
+            200: openapi.Response(
+                description="Room reservation completed successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'session_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'status': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Video not enabled or session not found"
+            )
+        }
+    )
+    def post(self, request, pk):
+        """Manually trigger room reservation for a session"""
+        try:
+            session = SessionDetails.objects.get(pk=pk)
+            
+            if not session.is_video_enabled or not session.room_id:
+                return Response(
+                    {"error": "Video conferencing not enabled for this session"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Reserve room immediately
+            reserve_room_immediately(session.id)
+            
+            # Get updated session status
+            session.refresh_from_db()
+            
+            return Response({
+                'message': 'Room reservation completed',
+                'session_id': session.id,
+                'status': session.status
+            }, status=status.HTTP_200_OK)
+                
+        except SessionDetails.DoesNotExist:
+            return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)

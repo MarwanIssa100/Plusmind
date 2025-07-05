@@ -9,7 +9,9 @@ from .views import (
     VideoRoomView,
     VideoTokenView,
     EnableVideoView,
-    RoomParticipantsView
+    RoomParticipantsView,
+    RoomReservationStatusView,
+    ManualRoomReservationView
 )
 
 app_name = 'sessionDetails'
@@ -27,4 +29,6 @@ urlpatterns = [
     path('video/token/<int:pk>/', VideoTokenView.as_view(), name='video-token'),
     path('video/enable/<int:pk>/', EnableVideoView.as_view(), name='enable-video'),
     path('video/participants/<int:pk>/', RoomParticipantsView.as_view(), name='room-participants'),
+    path('video/reservation-status/<int:pk>/', RoomReservationStatusView.as_view(), name='room-reservation-status'),
+    path('video/reserve/<int:pk>/', ManualRoomReservationView.as_view(), name='manual-room-reservation'),
 ]
