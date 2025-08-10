@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     'Notes',
     'django_countries',
     'mdeditor',
-    
+    'blog',
 ]
 
 MIDDLEWARE = [
