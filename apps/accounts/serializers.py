@@ -104,7 +104,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = ['user', 'address', 'Birth_date']
+        fields = ['user', 'Birth_date']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
