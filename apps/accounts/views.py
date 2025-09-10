@@ -13,6 +13,10 @@ from .serializers import (
     PasswordResetSerializer
 )
 
+#if you want to use csrf token in frontend uncomment this
+# from django.views.decorators.csrf import ensure_csrf_cookie
+
+
 class TherapistRegisterViewSet(viewsets.ModelViewSet):
     queryset = Therapist.objects.all()
     serializer_class = TherapistRegisterSerializer
@@ -50,7 +54,8 @@ class PatientRegisterViewSet(viewsets.ModelViewSet):
 
 class TherapistLoginView(TokenObtainPairView):
     serializer_class = TherapistTokenObtainPairSerializer
-    
+    #if you want to use csrf token in frontend uncomment this
+    # @ensure_csrf_cookie
     @action(detail=False , methods=['post'], permission_classes=[IsAuthenticated])
     def login(self, request):
         serializer = TherapistTokenObtainPairSerializer(data=request.data, context={'request': request})
@@ -71,6 +76,8 @@ class TherapistLoginView(TokenObtainPairView):
 class PatientLoginView(TokenObtainPairView):
     serializer_class = PatientTokenObtainPairSerializer
     
+    #if you want to use csrf token in frontend uncomment this
+    # @ensure_csrf_cookie
     @action(detail=False , methods=['post'], permission_classes=[IsAuthenticated])
     def login(self, request):
         serializer = PatientTokenObtainPairSerializer(data=request.data, context={'request': request})
@@ -91,6 +98,8 @@ class PatientLoginView(TokenObtainPairView):
 class PasswordResetViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
+    #if you want to use csrf token in frontend uncomment this
+    # @ensure_csrf_cookie
     @action(detail=False, methods=["post"])
     def request_reset(self, request):
         serializer = PasswordResetSerializer(data=request.data)
