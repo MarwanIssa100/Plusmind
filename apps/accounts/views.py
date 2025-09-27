@@ -14,13 +14,29 @@ from .serializers import (
 )
 
 #if you want to use csrf token in frontend uncomment this
-# from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 class TherapistRegisterViewSet(viewsets.ModelViewSet):
     queryset = Therapist.objects.all()
     serializer_class = TherapistRegisterSerializer
     permission_classes = [AllowAny]
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        therapist = serializer.save()
+        
+        # Generate tokens for the newly created user
+        refresh = RefreshToken.for_user(therapist.user)
+        
+        return Response({
+            'therapist': TherapistRegisterSerializer(therapist).data,
+            'tokens': {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        }, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def logout(self, request):
@@ -39,6 +55,23 @@ class PatientRegisterViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientRegisterSerializer
     permission_classes = [AllowAny]
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        patient = serializer.save()
+        
+        # Generate tokens for the newly created user
+        refresh = RefreshToken.for_user(patient.user)
+        
+        return Response({
+            'patient': PatientRegisterSerializer(patient).data,
+            'tokens': {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        }, status=status.HTTP_201_CREATED)
+    
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def logout(self, request):
         try:
@@ -55,7 +88,7 @@ class PatientRegisterViewSet(viewsets.ModelViewSet):
 class TherapistLoginView(TokenObtainPairView):
     serializer_class = TherapistTokenObtainPairSerializer
     #if you want to use csrf token in frontend uncomment this
-    # @ensure_csrf_cookie
+    @ensure_csrf_cookie
     @action(detail=False , methods=['post'], permission_classes=[IsAuthenticated])
     def login(self, request):
         serializer = TherapistTokenObtainPairSerializer(data=request.data, context={'request': request})
@@ -77,7 +110,7 @@ class PatientLoginView(TokenObtainPairView):
     serializer_class = PatientTokenObtainPairSerializer
     
     #if you want to use csrf token in frontend uncomment this
-    # @ensure_csrf_cookie
+    @ensure_csrf_cookie
     @action(detail=False , methods=['post'], permission_classes=[IsAuthenticated])
     def login(self, request):
         serializer = PatientTokenObtainPairSerializer(data=request.data, context={'request': request})
@@ -99,7 +132,7 @@ class PasswordResetViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
     #if you want to use csrf token in frontend uncomment this
-    # @ensure_csrf_cookie
+    @ensure_csrf_cookie
     @action(detail=False, methods=["post"])
     def request_reset(self, request):
         serializer = PasswordResetSerializer(data=request.data)
