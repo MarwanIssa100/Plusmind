@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'django_countries',
     'mdeditor',
     'blog',
+    'chatbot',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -131,6 +133,14 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+ASGI_APPLICATION = 'Plusmind.asgi.application'
+
+CHANNEL_LAYERS = {
+    "defualt": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
