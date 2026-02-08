@@ -1,11 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from groq import Groq
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from asgiref.sync import sync_to_async
+from .ai import stream_groq
 
-client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 class chatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -24,20 +21,15 @@ class chatConsumer(AsyncWebsocketConsumer):
             "message": message
         }))
 
-        #call groq api 
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[ {"role": "user", "content": message} ],
-            stream=True
-        )
+        # run streaming in background thread
+        generator = await sync_to_async(lambda: list(stream_groq(message)))()
 
         ai_reply = ""
 
-        for chunk in response:
-            if chunk.choices[0].delta.content:
-                ai_reply += chunk.choices[0].delta.content
+        for token in generator:
+            ai_reply += token
 
-                await self.send(text_data=json.dumps({
-                    "type": "assistant",
-                    "message": ai_reply
-                }))
+            await self.send(text_data=json.dumps({
+                "type": "assistant",
+                "message": ai_reply
+            }))

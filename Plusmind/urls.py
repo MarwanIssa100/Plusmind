@@ -48,6 +48,7 @@ urlpatterns = [
     path('accounts/',include('accounts.urls',namespace='accounts')),
     path('sessionDetails/',include('sessionDetails.urls',namespace='sessionDetails')),
     path('therapist/',include('therapist.urls',namespace='therapist')),
-    path('',include('chatbot.urls')),
+    # path('',include('chatbot.urls')),
+    path("api/chatbot/", include("chatbot.urls")),
 
 ]

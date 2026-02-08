@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     'mdeditor',
     'blog',
     'chatbot',
-    'channels',
+    # 'channels',
 ]
 
 MIDDLEWARE = [
