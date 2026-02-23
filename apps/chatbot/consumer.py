@@ -8,6 +8,20 @@ class chatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
 
+        # use guest user
+        self.user = await sync_to_async(get_guest_user)()
+
+        # create new conversation
+        self.conversation = await sync_to_async(
+            Conversation.objects.create
+        )(user=self.user)
+
+        # send conversation id to frontend
+        await self.send(json.dumps({
+            "type": "connection_established",
+            "conversation_id": self.conversation.id
+        }))
+
     async def disconnect(self, close_code):
         pass
 
